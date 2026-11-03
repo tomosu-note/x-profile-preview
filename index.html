@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="アイコンとヘッダーの候補を入れると、X のプロフィールでどう見えるかをその場で確かめられます。画像はどこにも送りません。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Xプロフィール試着室">
+<meta property="og:description" content="アイコンとヘッダーの候補を入れると、X のプロフィールでどう見えるかをその場で確かめられます。画像はどこにも送りません。">
+<meta property="og:url" content="https://tomosu-note.github.io/x-profile-preview/">
+<meta property="og:image" content="https://tomosu-note.github.io/x-profile-preview/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="samples/icon.jpg">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Xプロフィール試着室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout: 試着室。上に候補の棚、中央に PC とスマホのモック、下に寸法の確認。寸法は巻き尺の黄色で示す */
+:root{
+  --bg:#EDEFEB; --surface:#FFFFFF; --ink:#1A222C; --muted:#5A6570; --line:#D3D8D3;
+  --tape:#E2A300; --tape-ink:#2E2200; --focus:#1F6FEB; --shade:rgba(16,20,24,.55); --danger:#C0352B;
+  --f-display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic UI",Meiryo,sans-serif;
+  --f-body:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI",Meiryo,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --f-x:"Segoe UI",-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101418; --surface:#192027; --ink:#E6EAEE; --muted:#9BA5AF; --line:#2B333C;
+    --tape:#F0B416; --tape-ink:#251A00; --focus:#74ACFF; --shade:rgba(0,0,0,.6); --danger:#FF7B6E; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101418; --surface:#192027; --ink:#E6EAEE; --muted:#9BA5AF; --line:#2B333C;
+  --tape:#F0B416; --tape-ink:#251A00; --focus:#74ACFF; --shade:rgba(0,0,0,.6); --danger:#FF7B6E; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65}
+.wrap{max-width:1080px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:grid;gap:40px}
+h1,h2{font-family:var(--f-display);font-weight:700;text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:clamp(26px,4vw,34px);line-height:1.25}
+h2{font-size:20px;line-height:1.4}
+p{margin:0}
+.lead{color:var(--muted);max-width:62ch;margin-top:8px}
+.sec-head{display:grid;gap:4px;margin-bottom:16px}
+.sec-head p{color:var(--muted);max-width:66ch}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.tape{display:inline-block;font-family:var(--f-mono);font-size:12px;line-height:1;padding:4px 7px;border-radius:3px;background:var(--tape);color:var(--tape-ink);font-variant-numeric:tabular-nums;white-space:nowrap;
+  background-image:repeating-linear-gradient(90deg, rgba(0,0,0,.28) 0 1px, transparent 1px 6px);background-size:100% 4px;background-repeat:no-repeat;background-position:0 0}
+
+/* 候補の棚 */
+.shelf{display:grid;gap:12px;margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.rack{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rack-label{font-weight:700;font-size:13px;min-width:5.5em}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.th{border:0;padding:0;background:var(--line);cursor:pointer;background-repeat:no-repeat;position:relative}
+.th[data-kind="icon"]{width:40px;height:40px;border-radius:50%}
+.th[data-kind="header"]{width:96px;height:32px;border-radius:4px}
+.th[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--tape)}
+.add{border:1px dashed var(--muted);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;color:var(--muted)}
+.add:hover{color:var(--ink);border-color:var(--ink)}
+.del-acts{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn.danger{border-color:var(--danger);color:var(--danger);font-weight:700}
+.btn.danger:disabled{opacity:.45;cursor:default}
+.deleting .th{opacity:.5}
+.deleting .th[aria-pressed="true"]{box-shadow:none}
+.deleting .th[data-picked="true"]{opacity:1;box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--danger)}
+.deleting .th[data-picked="true"]::after{content:"✓";position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--danger);color:var(--surface);font-size:12px;line-height:18px;text-align:center;font-weight:700}
+.status{font-size:13px;color:var(--muted);min-height:1.2em}
+.view-opts{display:flex;gap:16px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;gap:2px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:4px 12px;font-size:13px;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+.hint{font-size:12px;color:var(--muted)}
+
+/* 舞台（PC とスマホ） */
+.stage{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.dev{margin:0;display:grid;gap:8px;min-width:0}
+.dev.pc{flex:1 1 520px;max-width:600px}
+.dev.sp{flex:1 1 300px;max-width:375px}
+.dev figcaption{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+.dev figcaption b{color:var(--ink);font-weight:700;margin-right:4px}
+.frame{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+
+/* X のモック。--u は「X の 1px」をこの枠の幅に合わせた長さ */
+.xt{--xb:#FFFFFF;--xt:#0F1419;--xm:#536471;--xl:#EFF3F4;--xbtn:#0F1419;--xbtnt:#FFFFFF;--xblue:#1D9BF0;--xph:#CFD9DE;background:var(--xb)}
+.xt[data-x="dim"]{--xb:#15202B;--xt:#F7F9F9;--xm:#8B98A5;--xl:#38444D;--xbtn:#EFF3F4;--xbtnt:#0F1419;--xph:#3D5466}
+.xt[data-x="dark"]{--xb:#000000;--xt:#E7E9EA;--xm:#71767B;--xl:#2F3336;--xbtn:#EFF3F4;--xbtnt:#0F1419;--xph:#333639}
+.mock{container-type:inline-size;width:100%;--W:600;--av:136}
+.mock-sp{--W:375;--av:85.75}
+.m{--u:calc(100cqw / var(--W));background:var(--xb);color:var(--xt);font-family:var(--f-x);font-size:calc(15 * var(--u));line-height:calc(20 * var(--u));overflow:hidden}
+.m-bar{height:calc(53 * var(--u));display:flex;align-items:center;gap:calc(28 * var(--u));padding:0 calc(16 * var(--u))}
+.m-back{font-size:calc(20 * var(--u))}
+.m-bar-name{font-weight:700;font-size:calc(20 * var(--u));line-height:calc(24 * var(--u));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-bar-sub{font-size:calc(13 * var(--u));line-height:calc(16 * var(--u));color:var(--xm)}
+.m-bar > div{min-width:0}
+.m-hero{position:relative}
+.m-head{aspect-ratio:3/1;background-color:var(--xph);background-repeat:no-repeat}
+.m-av{position:absolute;left:calc(16 * var(--u));bottom:calc(var(--av) * var(--u) / -2);width:calc(var(--av) * var(--u));height:calc(var(--av) * var(--u));border-radius:50%;background:var(--xb);padding:calc(4 * var(--u));transition:opacity .2s}
+.ghost .m-av{opacity:.3}
+.m-av-img{width:100%;height:100%;border-radius:50%;background-color:var(--xph);background-repeat:no-repeat}
+.m-actions{height:calc((var(--av) / 2 + 14) * var(--u));display:flex;justify-content:flex-end;align-items:flex-start;padding:calc(12 * var(--u)) calc(16 * var(--u)) 0}
+.m-follow{height:calc(36 * var(--u));padding:0 calc(16 * var(--u));border-radius:9999px;background:var(--xbtn);color:var(--xbtnt);font-weight:700;display:inline-flex;align-items:center}
+.m-info{padding:0 calc(16 * var(--u))}
+.m-name{font-weight:800;font-size:calc(20 * var(--u));line-height:calc(24 * var(--u));overflow-wrap:anywhere}
+.m-handle,.m-muted{color:var(--xm)}
+.m-bio{margin-top:calc(12 * var(--u));white-space:pre-wrap;overflow-wrap:anywhere}
+.m-meta{margin-top:calc(12 * var(--u));color:var(--xm);display:flex;flex-wrap:wrap;column-gap:calc(12 * var(--u))}
+.m-link{color:var(--xblue)}
+.m-counts{margin-top:calc(12 * var(--u));display:flex;gap:calc(20 * var(--u));color:var(--xm)}
+.m-counts b{color:var(--xt)}
+.m-tabs{margin-top:calc(16 * var(--u));display:flex;border-bottom:1px solid var(--xl);height:calc(53 * var(--u))}
+.m-tabs span{flex:1;display:flex;align-items:center;justify-content:center;color:var(--xm);position:relative}
+.m-tabs .on{color:var(--xt);font-weight:700}
+.m-tabs .on::after{content:"";position:absolute;bottom:0;height:calc(4 * var(--u));width:calc(56 * var(--u));background:var(--xblue);border-radius:9999px}
+.m-post{display:flex;gap:calc(8 * var(--u));padding:calc(12 * var(--u)) calc(16 * var(--u));border-bottom:1px solid var(--xl)}
+.m-pav{flex:none;width:calc(40 * var(--u));height:calc(40 * var(--u));border-radius:50%;background-color:var(--xph);background-repeat:no-repeat}
+.m-pbody{min-width:0;flex:1}
+.m-pname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-ptext{white-space:pre-wrap;overflow-wrap:anywhere}
+.m-pact{display:flex;justify-content:space-between;margin-top:calc(12 * var(--u));color:var(--xm);font-size:calc(13 * var(--u));max-width:calc(425 * var(--u))}
+.m-pact span{display:inline-flex;align-items:center;gap:calc(4 * var(--u))}
+.m-pact svg{width:calc(18.75 * var(--u));height:calc(18.75 * var(--u));fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+
+/* 調整 */
+.adjust{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px;align-content:start;min-width:0}
+.card h3{margin:0;font-size:15px;font-family:var(--f-display);font-weight:700}
+.crop{position:relative;width:100%;background-color:var(--line);background-repeat:no-repeat;cursor:grab;touch-action:none;user-select:none;border-radius:4px;overflow:hidden}
+.crop:active{cursor:grabbing}
+.crop-icon{max-width:240px;aspect-ratio:1}
+.crop-icon::after{content:"";position:absolute;inset:0;background:radial-gradient(circle closest-side, transparent 99%, var(--shade) 100%);pointer-events:none}
+.crop-header{aspect-ratio:3/1}
+.crop-header svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
+.ctrl input[type=range]{flex:1 1 140px;accent-color:var(--tape)}
+.ctrl .zv{font-family:var(--f-mono);font-variant-numeric:tabular-nums;min-width:3.5em}
+.btn{border:1px solid var(--line);background:transparent;border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.warn{color:var(--ink);background:color-mix(in srgb, var(--tape) 22%, transparent);border-radius:4px;padding:2px 6px}
+.legend{font-size:13px;color:var(--muted)}
+
+/* 候補を並べる */
+.compare{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.cmp{display:grid;gap:8px;min-width:0}
+.cmp .frame{cursor:pointer}
+.cmp-cap{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13px}
+.cmp-cap span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmp.on .frame{box-shadow:0 0 0 3px var(--tape)}
+.empty{color:var(--muted);font-size:14px;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:16px}
+
+/* 文字 */
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.fields label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+.fields .wide{grid-column:1 / -1}
+.fields input,.fields textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
+.fields textarea{min-height:5.5em;resize:vertical}
+
+
+.drop{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:color-mix(in srgb, var(--bg) 82%, transparent);border:3px dashed var(--tape);font-family:var(--f-display);font-size:20px;text-align:center;padding:24px}
+
+@media (max-width:720px){ .adjust{grid-template-columns:minmax(0,1fr)} }
+@media (prefers-reduced-motion: reduce){ .m-av{transition:none} }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header>
+    <h1>Xプロフィール試着室</h1>
+    <p class="lead">アイコンとヘッダーの候補を入れると、X のプロフィールとタイムラインでどう見えるかをその場で確かめられます。入れた画像はこのブラウザの中にだけ残り、どこにも送りません。リンクを人に渡しても、相手には見えません。X の公式ツールではありません。</p>
+    <div class="shelf">
+      <div class="rack" id="rack-icon">
+        <span class="rack-label">アイコン</span>
+        <div class="thumbs" id="thumbs-icon"></div>
+        <button class="add" type="button" data-add="icon">＋ 画像を追加</button>
+        <button class="add" type="button" data-del="icon">選んで削除</button>
+        <span class="del-acts" id="del-acts-icon" hidden><span class="hint">消す画像を押して選んでください</span><button class="btn danger" type="button" id="del-go-icon" data-del-go="icon" disabled>削除する</button><button class="btn" type="button" data-del-cancel="icon">やめる</button></span>
+      </div>
+      <div class="rack" id="rack-header">
+        <span class="rack-label">ヘッダー</span>
+        <div class="thumbs" id="thumbs-header"></div>
+        <button class="add" type="button" data-add="header">＋ 画像を追加</button>
+        <button class="add" type="button" data-del="header">選んで削除</button>
+        <span class="del-acts" id="del-acts-header" hidden><span class="hint">消す画像を押して選んでください</span><button class="btn danger" type="button" id="del-go-header" data-del-go="header" disabled>削除する</button><button class="btn" type="button" data-del-cancel="header">やめる</button></span>
+      </div>
+      <div class="view-opts">
+        <div class="seg" role="group" aria-label="X の表示の色">
+          <button type="button" data-x="light" id="x-light">デフォルト</button>
+          <button type="button" data-x="dim" id="x-dim">ダークブルー</button>
+          <button type="button" data-x="dark" id="x-dark">ブラック</button>
+        </div>
+        <label class="chk"><input type="checkbox" id="ghost"> アイコンを透かして下のヘッダーを見る</label>
+        <button class="btn" type="button" id="restore" hidden>外した見本をもどす</button>
+        <span class="hint">画像はページのどこに落としても入ります（横長はヘッダー、それ以外はアイコン）。貼り付けも使えます。</span>
+      </div>
+      <p class="status" id="status" aria-live="polite"></p>
+    </div>
+    <input type="file" id="file-icon" accept="image/*" multiple hidden>
+    <input type="file" id="file-header" accept="image/*" multiple hidden>
+  </header>
+
+  <section>
+    <div class="stage">
+      <figure class="dev pc">
+        <figcaption><b>パソコン</b><span class="tape">幅 600</span><span class="tape">ヘッダー 600×200</span><span class="tape">アイコン 128</span></figcaption>
+        <div class="frame" id="mock-pc"></div>
+      </figure>
+      <figure class="dev sp">
+        <figcaption><b>スマホ（Web版）</b><span class="tape">幅 375</span><span class="tape">ヘッダー 375×125</span><span class="tape">アイコン 78</span></figcaption>
+        <div class="frame" id="mock-sp"></div>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>位置と大きさ</h2>
+      <p>X に上げるときも同じように拡大と位置合わせができます。ここで決めた切り抜きが、上の見え方と下の比較すべてに反映されます。画像をドラッグすると位置が動きます。</p>
+    </div>
+    <div class="adjust">
+      <div class="card">
+        <h3>アイコン</h3>
+        <div class="crop crop-icon" id="crop-icon" tabindex="0" role="img" aria-label="アイコンの切り抜き。ドラッグか矢印キーで位置を動かせます"></div>
+        <div class="ctrl"><label for="zoom-icon">拡大</label><input type="range" id="zoom-icon" min="1" max="4" step="0.01" value="1"><span class="zv" id="zv-icon">1.00×</span></div>
+        <div class="meta" id="meta-icon"></div>
+        <div class="ctrl"><button class="btn" type="button" data-reset="icon">位置をもどす</button><button class="btn" type="button" data-remove="icon">この候補を外す</button></div>
+        <p class="legend">暗いところは丸く切り取られて見えなくなります。</p>
+      </div>
+      <div class="card">
+        <h3>ヘッダー</h3>
+        <div class="crop crop-header" id="crop-header" tabindex="0" role="img" aria-label="ヘッダーの切り抜き。ドラッグか矢印キーで位置を動かせます">
+          <svg viewBox="0 0 1500 500" preserveAspectRatio="none" aria-hidden="true" id="cover-svg">
+            <circle cx="210" cy="500" r="170" fill="rgba(0,0,0,.42)" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="14 10"/>
+            <circle cx="235.5" cy="500" r="171.5" fill="rgba(0,0,0,.18)" stroke="#F0B416" stroke-width="3" stroke-dasharray="6 8"/>
+          </svg>
+        </div>
+        <div class="ctrl"><label for="zoom-header">拡大</label><input type="range" id="zoom-header" min="1" max="4" step="0.01" value="1"><span class="zv" id="zv-header">1.00×</span>
+          <label class="chk"><input type="checkbox" id="cover" checked> アイコンが重なるところ</label></div>
+        <div class="meta" id="meta-header"></div>
+        <div class="ctrl"><button class="btn" type="button" data-reset="header">位置をもどす</button><button class="btn" type="button" data-remove="header">この候補を外す</button></div>
+        <p class="legend">左下の半円がアイコンで隠れるところです。1500×500 の画像で言うと、左端から 40〜407、下から約 170 まで。パソコン（白い線）とスマホ（黄色の線）でほぼ同じ場所です。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>ヘッダーの候補を並べる</h2>
+      <p>入れたヘッダーをスマホの見え方で並べます。押すとそのヘッダーに切り替わります。</p>
+    </div>
+    <div id="cmp-headers"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>プロフィールの文字</h2>
+      <p>最初は 10月28日時点の @tomosu_note0 の文字が入っています。書き換えるとすぐ上の見え方に反映されます。</p>
+    </div>
+    <div class="fields" id="fields"></div>
+  </section>
+
+</div>
+<div class="drop" id="drop" hidden>ここで離すと候補に入ります<br><span class="hint">横長はヘッダー、それ以外はアイコン</span></div>
+
+<script>
+(() => {
+const SAMPLES = [
+  {id:'s-icon', kind:'icon', name:'いまのアイコン', note:'X で使用中（10/28 取得）', src:'samples/icon.jpg', w:400, h:400},
+  {id:'s-header', kind:'header', name:'いまのヘッダー', note:'X で使用中（10/28 取得）', src:'samples/header.jpg', w:1500, h:500},
+  {id:'s-bath-left', kind:'header', name:'露天風呂・左配置', note:'10/21 の元案', src:'samples/header-bath-left.jpg', w:1500, h:500},
+];
+const FIELDS = [
+  {k:'name', label:'名前', v:'ともす｜note'},
+  {k:'handle', label:'ユーザー名（@ のあと）', v:'tomosu_note0'},
+  {k:'bio', label:'自己紹介', v:'暮らしの著者になる｜文章で自分の望む暮らしをつくる｜日常や頭の中から書く題材を見つけるヒントを発信｜会社を辞めたくて副業を始め、独立も挫折も経験｜今は事務職しながらnote書いています', multi:true, wide:true},
+  {k:'link', label:'リンク', v:'note.com/tomosu_note'},
+  {k:'joined', label:'利用開始', v:'2026年9月からXを利用しています'},
+  {k:'following', label:'フォロー中', v:'33'},
+  {k:'followers', label:'フォロワー', v:'32'},
+  {k:'posts', label:'ポスト数', v:'254'},
+  {k:'post', label:'ポストの見本', v:'これはタイムラインでの見え方を確かめるための見本の文です。アイコンの大きさと、名前の並び方を見てください。', multi:true, wide:true},
+];
+const LS = 'xpv:v1';
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const clamp = v => Math.max(0, Math.min(100, v));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const saved = (() => { try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch (e) { return {}; } })();
+const S = {
+  items: [],
+  sel: Object.assign({icon:null, header:null}, saved.sel),
+  x: saved.x || 'light',
+  ghost: !!saved.ghost,
+  cover: saved.cover !== false,
+  text: Object.fromEntries(FIELDS.map(f => [f.k, (saved.text && saved.text[f.k] != null) ? saved.text[f.k] : f.v])),
+  hidden: Array.isArray(saved.hidden) ? saved.hidden : [],
+  del: {icon:false, header:false},
+  picked: new Set(),
+};
+const crops = saved.crops || {};
+function withCrop(it){ const c = crops[it.id] || {}; return Object.assign({zoom:1, px:50, py:50}, it, {zoom:c.zoom ?? 1, px:c.px ?? 50, py:c.py ?? 50}); }
+function save(){
+  try {
+    localStorage.setItem(LS, JSON.stringify({
+      x:S.x, ghost:S.ghost, cover:S.cover, sel:S.sel, text:S.text, hidden:S.hidden,
+      crops:Object.fromEntries(S.items.map(i => [i.id, {zoom:i.zoom, px:i.px, py:i.py}])),
+    }));
+  } catch (e) {}
+}
+
+// 追加した画像は IndexedDB に置く（この端末だけ）
+let dbp = null;
+function db(){
+  if (!dbp) dbp = new Promise((res, rej) => {
+    try { const r = indexedDB.open('xpv', 1); r.onupgradeneeded = () => r.result.createObjectStore('items', {keyPath:'id'}); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }
+    catch (e) { rej(e); }
+  });
+  return dbp;
+}
+async function idbAll(){ try { const d = await db(); return await new Promise((res, rej) => { const q = d.transaction('items').objectStore('items').getAll(); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); } catch (e) { return []; } }
+async function idbPut(rec){ try { const d = await db(); d.transaction('items', 'readwrite').objectStore('items').put(rec); } catch (e) {} }
+async function idbDel(id){ try { const d = await db(); d.transaction('items', 'readwrite').objectStore('items').delete(id); } catch (e) {} }
+
+const byKind = k => S.items.filter(i => i.kind === k);
+const cur = k => S.items.find(i => i.id === S.sel[k]) || byKind(k)[0] || null;
+
+// 切り抜きは % で持つので、同じ縦横比の枠ならどの大きさでも同じ見え方になる
+function bg(it, ca){
+  if (!it) return {backgroundImage:'none', backgroundSize:'', backgroundPosition:''};
+  const a = it.w / it.h;
+  const sw = Math.max(a / ca, 1) * it.zoom * 100, sh = Math.max(ca / a, 1) * it.zoom * 100;
+  return {backgroundImage:`url("${it.src}")`, backgroundSize:`${sw}% ${sh}%`, backgroundPosition:`${it.px}% ${it.py}%`};
+}
+function paint(){
+  const ic = cur('icon'), hd = cur('header');
+  $$('[data-img="icon"]').forEach(el => Object.assign(el.style, bg(ic, 1)));
+  $$('[data-img="header"]').forEach(el => Object.assign(el.style, bg(hd, 3)));
+  $$('[data-img-id]').forEach(el => { const it = S.items.find(i => i.id === el.dataset.imgId); Object.assign(el.style, bg(it, it && it.kind === 'header' ? 3 : 1)); });
+  $$('.th').forEach(el => el.setAttribute('aria-pressed', String(el.dataset.id === (cur(el.dataset.kind) || {}).id)));
+  $$('.cmp').forEach(el => el.classList.toggle('on', el.dataset.id === (hd || {}).id));
+  ['icon', 'header'].forEach(k => {
+    const it = cur(k);
+    $('#zoom-' + k).value = it ? it.zoom : 1;
+    $('#zv-' + k).textContent = (it ? it.zoom : 1).toFixed(2) + '×';
+  });
+}
+
+const ACT = `<div class="m-pact">
+  <span><svg viewBox="0 0 24 24"><path d="M4 5.5h16v10.5H10l-4.5 3.5V16H4z"/></svg>2</span>
+  <span><svg viewBox="0 0 24 24"><path d="M7 6v10h9M4 9l3-3 3 3M17 18V8H8M20 15l-3 3-3-3"/></svg>3</span>
+  <span><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>12</span>
+  <span><svg viewBox="0 0 24 24"><path d="M5 20V12M10 20V6M15 20v-9M20 20V9"/></svg>480</span>
+</div>`;
+function mockHTML(kind, x, headerAttr){
+  return `<div class="mock xt mock-${kind}" data-x="${x}"><div class="m">
+    <div class="m-bar"><span class="m-back" aria-hidden="true">←</span><div><div class="m-bar-name" data-t="name"></div><div class="m-bar-sub"><span data-t="posts"></span> 件のポスト</div></div></div>
+    <div class="m-hero"><div class="m-head" ${headerAttr}></div><div class="m-av"><div class="m-av-img" data-img="icon"></div></div></div>
+    <div class="m-actions"><span class="m-follow">フォロー</span></div>
+    <div class="m-info">
+      <div class="m-name" data-t="name"></div>
+      <div class="m-handle">@<span data-t="handle"></span></div>
+      <div class="m-bio" data-t="bio"></div>
+      <div class="m-meta"><span class="m-link" data-t="link"></span><span data-t="joined"></span></div>
+      <div class="m-counts"><span><b data-t="following"></b> フォロー中</span><span><b data-t="followers"></b> フォロワー</span></div>
+    </div>
+    <div class="m-tabs"><span class="on">ポスト</span><span>返信</span><span>メディア</span></div>
+    <div class="m-post"><div class="m-pav" data-img="icon"></div><div class="m-pbody">
+      <div class="m-pname"><b data-t="name"></b> <span class="m-muted">@<span data-t="handle"></span> · 1時間</span></div>
+      <div class="m-ptext" data-t="post"></div>${ACT}</div></div>
+  </div></div>`;
+}
+function heroHTML(x, hid){
+  return `<div class="mock xt mock-sp" data-x="${x}"><div class="m">
+    <div class="m-hero"><div class="m-head" data-img-id="${esc(hid)}"></div><div class="m-av"><div class="m-av-img" data-img="icon"></div></div></div>
+    <div class="m-actions"><span class="m-follow">フォロー</span></div>
+    <div class="m-info" style="padding-bottom:calc(16 * var(--u))"><div class="m-name" data-t="name"></div><div class="m-handle">@<span data-t="handle"></span></div></div>
+  </div></div>`;
+}
+
+function renderTexts(){ $$('[data-t]').forEach(el => { el.textContent = S.text[el.dataset.t] ?? ''; }); }
+function renderThumbs(){
+  ['icon', 'header'].forEach(k => {
+    $('#thumbs-' + k).innerHTML = byKind(k).map(it => `<button type="button" class="th" data-kind="${k}" data-id="${esc(it.id)}" data-img-id="${esc(it.id)}" data-picked="${S.picked.has(it.id)}" title="${esc(it.name)}" aria-label="${esc(it.name)}"></button>`).join('');
+  });
+}
+function renderDel(){
+  ['icon', 'header'].forEach(k => {
+    const on = S.del[k], n = byKind(k).filter(i => S.picked.has(i.id)).length;
+    $('#rack-' + k).classList.toggle('deleting', on);
+    $('#del-acts-' + k).hidden = !on;
+    $(`[data-del="${k}"]`).hidden = on;
+    $(`[data-add="${k}"]`).hidden = on;
+    const go = $('#del-go-' + k);
+    go.disabled = !n;
+    go.textContent = n ? `選んだ ${n} 件を削除` : '削除する';
+  });
+}
+function renderMeta(){
+  ['icon', 'header'].forEach(k => {
+    const it = cur(k), el = $('#meta-' + k);
+    if (!it) { el.innerHTML = '<span>候補がありません。「＋ 画像を追加」から入れてください。</span>'; return; }
+    const warn = [];
+    if (k === 'icon' && Math.min(it.w, it.h) < 400) warn.push('小さめの画像です。X はアイコンを 400×400 で配るので、ぼやけることがあります');
+    if (k === 'header' && it.w < 1500) warn.push('小さめの画像です。X はヘッダーを 1500×500 で配るので、ぼやけることがあります');
+    if (k === 'icon' && Math.abs(it.w / it.h - 1) > 0.02) warn.push('正方形ではないので端が切れます');
+    if (k === 'header' && Math.abs(it.w / it.h - 3) > 0.05) warn.push('3:1 ではないので上下か左右が切れます');
+    el.innerHTML = `<b style="color:var(--ink)">${esc(it.name)}</b><span class="tape">${it.w}×${it.h}</span>${it.note ? `<span>${esc(it.note)}</span>` : ''}` + warn.map(w => `<span class="warn">${esc(w)}</span>`).join('');
+  });
+}
+function renderCompare(){
+  const hs = byKind('header');
+  $('#cmp-headers').innerHTML = hs.length < 2
+    ? '<p class="empty">ヘッダーの候補を 2 つ以上入れると、ここに並びます。</p>'
+    : `<div class="compare">${hs.map(h => `<div class="cmp" data-id="${esc(h.id)}"><div class="frame" role="button" tabindex="0" aria-label="${esc(h.name)} に切り替える">${heroHTML(S.x, h.id)}</div><div class="cmp-cap"><span>${esc(h.name)}</span><span class="hint">${esc(h.note || '')}</span></div></div>`).join('')}</div>`;
+}
+function renderMocks(){
+  $('#mock-pc').innerHTML = mockHTML('pc', S.x, 'data-img="header"');
+  $('#mock-sp').innerHTML = mockHTML('sp', S.x, 'data-img="header"');
+}
+function renderAll(){
+  $('#app').classList.toggle('ghost', S.ghost);
+  $$('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.x === S.x)));
+  $('#ghost').checked = S.ghost;
+  $('#cover').checked = S.cover;
+  $('#cover-svg').style.display = S.cover ? '' : 'none';
+  $('#restore').hidden = !S.hidden.length;
+  $('#crop-icon').dataset.img = 'icon';
+  $('#crop-header').dataset.img = 'header';
+  renderThumbs(); renderDel(); renderMocks(); renderCompare(); renderMeta(); renderTexts(); paint();
+}
+
+function renderFields(){
+  $('#fields').innerHTML = FIELDS.map(f => `<label class="${f.wide ? 'wide' : ''}">${esc(f.label)}${f.multi
+    ? `<textarea id="f-${f.k}" data-k="${f.k}" rows="3"></textarea>`
+    : `<input id="f-${f.k}" data-k="${f.k}" type="text">`}</label>`).join('');
+  FIELDS.forEach(f => { $('#f-' + f.k).value = S.text[f.k]; });
+  $('#fields').addEventListener('input', e => { const k = e.target.dataset.k; if (!k) return; S.text[k] = e.target.value; renderTexts(); save(); });
+}
+
+// 画像の追加
+function dims(src){ return new Promise((res, rej) => { const im = new Image(); im.onload = () => res({w:im.naturalWidth, h:im.naturalHeight}); im.onerror = rej; im.src = src; }); }
+async function addFiles(files, forceKind){
+  let added = 0;
+  for (const f of files) {
+    if (!f || !f.type || !f.type.startsWith('image/')) continue;
+    const src = URL.createObjectURL(f);
+    let d; try { d = await dims(src); } catch (e) { URL.revokeObjectURL(src); continue; }
+    const kind = forceKind || (d.w / d.h >= 2 ? 'header' : 'icon');
+    const id = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const name = (f.name || '貼り付けた画像').replace(/\.[^.]+$/, '');
+    S.items.push({id, kind, name, note:'', src, w:d.w, h:d.h, zoom:1, px:50, py:50});
+    S.sel[kind] = id;
+    idbPut({id, kind, name, blob:f, w:d.w, h:d.h});
+    added++;
+  }
+  if (added) { save(); renderAll(); }
+}
+// 削除。見本は隠すだけ（「外した見本をもどす」で戻る）、追加した画像は端末からも消す
+function removeItems(ids){
+  ids.forEach(id => {
+    const it = S.items.find(i => i.id === id); if (!it) return;
+    if (it.id.startsWith('s-')) S.hidden.push(it.id); else { idbDel(it.id); URL.revokeObjectURL(it.src); }
+  });
+  S.items = S.items.filter(i => !ids.includes(i.id));
+  ['icon', 'header'].forEach(k => { if (!S.items.some(i => i.id === S.sel[k])) S.sel[k] = (byKind(k)[0] || {}).id || null; });
+  save(); renderAll();
+}
+let sayT = 0;
+function say(msg){ const el = $('#status'); el.textContent = msg; clearTimeout(sayT); sayT = setTimeout(() => { el.textContent = ''; }, 4000); }
+
+['icon', 'header'].forEach(k => {
+  const inp = $('#file-' + k);
+  inp.addEventListener('change', () => { addFiles([...inp.files], k); inp.value = ''; });
+});
+document.addEventListener('click', e => {
+  const add = e.target.closest('[data-add]'); if (add) { $('#file-' + add.dataset.add).click(); return; }
+  const del = e.target.closest('[data-del]'); if (del) { S.del[del.dataset.del] = true; renderDel(); return; }
+  const dc = e.target.closest('[data-del-cancel]'); if (dc) { const k = dc.dataset.delCancel; S.del[k] = false; byKind(k).forEach(i => S.picked.delete(i.id)); renderThumbs(); renderDel(); paint(); return; }
+  const dg = e.target.closest('[data-del-go]'); if (dg) {
+    const k = dg.dataset.delGo, ids = byKind(k).filter(i => S.picked.has(i.id)).map(i => i.id);
+    if (!ids.length) return;
+    S.del[k] = false; ids.forEach(id => S.picked.delete(id));
+    removeItems(ids); say(`${ids.length} 件を削除しました`); return;
+  }
+  const th = e.target.closest('.th'); if (th) {
+    const k = th.dataset.kind, id = th.dataset.id;
+    if (S.del[k]) { if (S.picked.has(id)) S.picked.delete(id); else S.picked.add(id); th.dataset.picked = String(S.picked.has(id)); renderDel(); return; }
+    S.sel[k] = id; save(); renderMeta(); paint(); return;
+  }
+  const xb = e.target.closest('.seg button'); if (xb) { S.x = xb.dataset.x; save(); renderAll(); return; }
+  const cmp = e.target.closest('.cmp'); if (cmp) { S.sel.header = cmp.dataset.id; save(); renderMeta(); paint(); return; }
+  if (e.target.closest('#restore')) { const back = SAMPLES.filter(s => S.hidden.includes(s.id)).map(withCrop); S.hidden = []; S.items = back.concat(S.items); save(); renderAll(); return; }
+  const rs = e.target.closest('[data-reset]'); if (rs) { const it = cur(rs.dataset.reset); if (it) { it.zoom = 1; it.px = 50; it.py = 50; save(); paint(); } return; }
+  const rm = e.target.closest('[data-remove]'); if (rm) { const it = cur(rm.dataset.remove); if (it) { removeItems([it.id]); say(`「${it.name}」を外しました`); } }
+});
+document.addEventListener('keydown', e => {
+  const cmpf = e.target.closest && e.target.closest('.cmp .frame');
+  if (cmpf && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); cmpf.click(); }
+});
+$('#ghost').addEventListener('change', e => { S.ghost = e.target.checked; save(); $('#app').classList.toggle('ghost', S.ghost); });
+$('#cover').addEventListener('change', e => { S.cover = e.target.checked; save(); $('#cover-svg').style.display = S.cover ? '' : 'none'; });
+['icon', 'header'].forEach(k => {
+  $('#zoom-' + k).addEventListener('input', e => { const it = cur(k); if (!it) return; it.zoom = +e.target.value; paint(); });
+  $('#zoom-' + k).addEventListener('change', save);
+});
+
+// ドラッグと矢印キーで位置を動かす
+function overflow(el, it){
+  const r = el.getBoundingClientRect(), ca = it.kind === 'icon' ? 1 : 3, a = it.w / it.h;
+  return {ox: r.width * (Math.max(a / ca, 1) * it.zoom - 1), oy: r.height * (Math.max(ca / a, 1) * it.zoom - 1)};
+}
+['icon', 'header'].forEach(k => {
+  const el = $('#crop-' + k);
+  el.addEventListener('pointerdown', e => {
+    const it = cur(k); if (!it) return;
+    el.setPointerCapture(e.pointerId);
+    const {ox, oy} = overflow(el, it);
+    let lx = e.clientX, ly = e.clientY;
+    const mv = ev => {
+      const dx = ev.clientX - lx, dy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY;
+      if (ox > 0.5) it.px = clamp(it.px - dx / ox * 100);
+      if (oy > 0.5) it.py = clamp(it.py - dy / oy * 100);
+      paint();
+    };
+    const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); save(); };
+    el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  });
+  el.addEventListener('keydown', e => {
+    const it = cur(k); if (!it) return;
+    const step = e.shiftKey ? 10 : 2, m = {ArrowLeft:[step, 0], ArrowRight:[-step, 0], ArrowUp:[0, step], ArrowDown:[0, -step]}[e.key];
+    if (!m) return;
+    e.preventDefault(); it.px = clamp(it.px + m[0]); it.py = clamp(it.py + m[1]); paint(); save();
+  });
+});
+
+// 落とす・貼り付ける
+let depth = 0;
+const hasFiles = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+window.addEventListener('dragenter', e => { if (!hasFiles(e)) return; e.preventDefault(); depth++; $('#drop').hidden = false; });
+window.addEventListener('dragover', e => { if (hasFiles(e)) e.preventDefault(); });
+window.addEventListener('dragleave', e => { if (!hasFiles(e)) return; depth = Math.max(0, depth - 1); if (!depth) $('#drop').hidden = true; });
+window.addEventListener('drop', e => { if (!hasFiles(e)) return; e.preventDefault(); depth = 0; $('#drop').hidden = true; addFiles([...e.dataTransfer.files]); });
+window.addEventListener('paste', e => {
+  if (e.target.closest && e.target.closest('input,textarea')) return;
+  const files = [...(e.clipboardData ? e.clipboardData.items : [])].filter(i => i.kind === 'file').map(i => i.getAsFile()).filter(Boolean);
+  if (files.length) { e.preventDefault(); addFiles(files); }
+});
+
+// 起動
+S.items = SAMPLES.filter(s => !S.hidden.includes(s.id)).map(withCrop);
+renderFields();
+renderAll();
+idbAll().then(recs => {
+  if (!recs.length) return;
+  recs.forEach(r => { if (!r.blob) return; S.items.push(withCrop({id:r.id, kind:r.kind, name:r.name, note:'', src:URL.createObjectURL(r.blob), w:r.w, h:r.h})); });
+  renderAll();
+});
+})();
+</script>
+</body>
+</html>
