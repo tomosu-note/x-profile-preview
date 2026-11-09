@@ -166,6 +166,8 @@ button{font:inherit;color:inherit}
 .ctrl .zv{font-family:var(--f-mono);font-variant-numeric:tabular-nums;min-width:3.5em}
 .btn{border:1px solid var(--line);background:transparent;border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer}
 .btn:hover{border-color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:disabled:hover{border-color:var(--line)}
 .meta{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .warn{color:var(--ink);background:color-mix(in srgb, var(--tape) 22%, transparent);border-radius:4px;padding:2px 6px}
 .legend{font-size:13px;color:var(--muted)}
@@ -250,6 +252,7 @@ button{font:inherit;color:inherit}
 
 
 .drop{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:color-mix(in srgb, var(--bg) 82%, transparent);border:3px dashed var(--tape);font-family:var(--f-display);font-size:20px;text-align:center;padding:24px}
+
 
 @media (max-width:720px){ .adjust{grid-template-columns:minmax(0,1fr)} }
 @media (prefers-reduced-motion: reduce){ .m-av,.ip-av{transition:none} }
@@ -378,7 +381,8 @@ button{font:inherit;color:inherit}
   <section>
     <div class="sec-head">
       <h2>プロフィールの文字</h2>
-      <p>最初は @tomosu_note0 の文字が入っています。書き換えるとすぐ上の見え方に反映されます。</p>
+      <p>最初は @tomosu_note0 の文字が入っています。書き換えるとすぐ上の見え方に反映されます。「最初の文字にもどす」で、いつでも元に戻せます。</p>
+      <div class="ctrl"><button class="btn" type="button" id="text-reset">最初の文字にもどす</button><span class="hint" id="text-reset-msg" aria-live="polite"></span></div>
     </div>
     <div class="fields" id="fields"></div>
   </section>
@@ -389,9 +393,9 @@ button{font:inherit;color:inherit}
 <script>
 (() => {
 const SAMPLES = [
-  {id:'s-icon', kind:'icon', name:'いまのアイコン', note:'X で使用中（10/28 取得）', src:'samples/icon.jpg', w:400, h:400},
-  {id:'s-header', kind:'header', name:'いまのヘッダー', note:'X で使用中（10/28 取得）', src:'samples/header.jpg', w:1500, h:500},
-  {id:'s-bath-left', kind:'header', name:'露天風呂・左配置', note:'10/21 の元案', src:'samples/header-bath-left.jpg', w:1500, h:500},
+  {id:'s-icon', kind:'icon', name:'いまのアイコン', note:'', src:'samples/icon.jpg', w:400, h:400},
+  {id:'s-header', kind:'header', name:'いまのヘッダー', note:'', src:'samples/header.jpg', w:1500, h:500},
+  {id:'s-bath-left', kind:'header', name:'露天風呂・左配置', note:'', src:'samples/header-bath-left.jpg', w:1500, h:500},
 ];
 const FIELDS = [
   {k:'name', label:'名前', v:'ともす｜note'},
@@ -662,9 +666,19 @@ function renderFields(){
     : `<input id="f-${f.k}" data-k="${f.k}" type="text">`}</label>`).join('');
   $('#fields').insertAdjacentHTML('beforeend', '<label class="chk wide"><input type="checkbox" id="f-badge"> 名前の横に認証マーク（青いチェック）を出す</label>');
   $('#f-badge').checked = S.badge;
-  $('#f-badge').addEventListener('change', e => { S.badge = e.target.checked; save(); $('#app').classList.toggle('nobadge', !S.badge); });
+  $('#f-badge').addEventListener('change', e => { S.badge = e.target.checked; save(); $('#app').classList.toggle('nobadge', !S.badge); renderResetBtn(); });
   FIELDS.forEach(f => { $('#f-' + f.k).value = S.text[f.k]; });
-  $('#fields').addEventListener('input', e => { const k = e.target.dataset.k; if (!k) return; S.text[k] = e.target.value; renderTexts(); save(); });
+  $('#fields').addEventListener('input', e => { const k = e.target.dataset.k; if (!k) return; S.text[k] = e.target.value; renderTexts(); save(); renderResetBtn(); });
+  renderResetBtn();
+}
+// 「最初の文字にもどす」。書き換えた欄と認証マークを最初の @tomosu_note0 の文字にもどす。もどす物がないときは押せない
+function renderResetBtn(){ $('#text-reset').disabled = S.badge && FIELDS.every(f => S.text[f.k] === f.v); }
+let resetT = 0;
+function resetTexts(){
+  FIELDS.forEach(f => { S.text[f.k] = f.v; $('#f-' + f.k).value = f.v; });
+  S.badge = true; $('#f-badge').checked = true; $('#app').classList.remove('nobadge');
+  renderTexts(); save(); renderResetBtn();
+  const m = $('#text-reset-msg'); m.textContent = '最初の文字にもどしました'; clearTimeout(resetT); resetT = setTimeout(() => { m.textContent = ''; }, 4000);
 }
 
 // 画像の追加
@@ -781,6 +795,7 @@ window.addEventListener('paste', e => {
 
 // 起動
 S.items = SAMPLES.filter(s => !S.hidden.includes(s.id)).map(withCrop);
+$('#text-reset').addEventListener('click', resetTexts);
 renderFields();
 renderAll();
 idbAll().then(recs => {
