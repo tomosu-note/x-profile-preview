@@ -249,6 +249,9 @@ button{font:inherit;color:inherit}
 .fields .wide{grid-column:1 / -1}
 .fields input,.fields textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
 .fields textarea{min-height:5.5em;resize:vertical}
+/* 認証マークのチェック欄は、四角と文字を横に並べる（上の欄の書き方を当てない） */
+.fields label.chk{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink)}
+.fields label.chk input{width:auto;padding:0;margin:0;flex:none}
 
 
 .drop{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:color-mix(in srgb, var(--bg) 82%, transparent);border:3px dashed var(--tape);font-family:var(--f-display);font-size:20px;text-align:center;padding:24px}
