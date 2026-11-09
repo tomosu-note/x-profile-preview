@@ -31,7 +31,7 @@ img{max-width:100%}
   --f-display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic UI",Meiryo,sans-serif;
   --f-body:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI",Meiryo,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
-  --f-x:"Segoe UI",-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI",Meiryo,sans-serif;
+  --f-x:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -61,9 +61,16 @@ button{font:inherit;color:inherit}
 
 /* 候補の棚 */
 .shelf{display:grid;gap:12px;margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-.rack{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+/* 1行＝ラベル｜候補｜ボタン。ボタンはアイコンとヘッダーの2行で同じ位置にそろえる。狭い画面ではボタンを候補の下の段へ */
+.rack{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:12px;row-gap:10px}
 .rack-label{font-weight:700;font-size:13px;min-width:5.5em}
-.thumbs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:40px}
+.rack-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+@media (max-width:640px){
+  .rack{grid-template-columns:auto minmax(0,1fr)}
+  .rack-acts{grid-column:2;justify-content:flex-start}
+  .del-acts .hint{flex-basis:100%}
+}
 .th{border:0;padding:0;background:var(--line);cursor:pointer;background-repeat:no-repeat;position:relative}
 .th[data-kind="icon"]{width:40px;height:40px;border-radius:50%}
 .th[data-kind="header"]{width:96px;height:32px;border-radius:4px}
@@ -88,8 +95,7 @@ button{font:inherit;color:inherit}
 /* 舞台（PC とスマホ） */
 .stage{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
 .dev{margin:0;display:grid;gap:8px;min-width:0}
-.dev.pc{flex:1 1 520px;max-width:600px}
-.dev.sp{flex:1 1 300px;max-width:375px}
+.dev.pc{flex:1 1 520px;max-width:602px}
 .dev figcaption{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
 .dev figcaption b{color:var(--ink);font-weight:700;margin-right:4px}
 .frame{border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -99,11 +105,14 @@ button{font:inherit;color:inherit}
 .xt[data-x="dim"]{--xb:#15202B;--xt:#F7F9F9;--xm:#8B98A5;--xl:#38444D;--xbtn:#EFF3F4;--xbtnt:#0F1419;--xph:#3D5466}
 .xt[data-x="dark"]{--xb:#000000;--xt:#E7E9EA;--xm:#71767B;--xl:#2F3336;--xbtn:#EFF3F4;--xbtnt:#0F1419;--xph:#333639}
 .mock{container-type:inline-size;width:100%;--W:600;--av:136}
-.mock-sp{--W:375;--av:85.75}
 .m{--u:calc(100cqw / var(--W));background:var(--xb);color:var(--xt);font-family:var(--f-x);font-size:calc(15 * var(--u));line-height:calc(20 * var(--u));overflow:hidden}
-.m-bar{height:calc(53 * var(--u));display:flex;align-items:center;gap:calc(28 * var(--u));padding:0 calc(16 * var(--u))}
-.m-back{font-size:calc(20 * var(--u))}
-.m-bar-name{font-weight:700;font-size:calc(20 * var(--u));line-height:calc(24 * var(--u));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-bar{height:calc(53 * var(--u));display:flex;align-items:center;padding:0 calc(8 * var(--u))}
+.m-ico{flex:none;width:calc(34 * var(--u));height:calc(34 * var(--u));display:grid;place-items:center}
+.m-ico svg{width:calc(20 * var(--u));height:calc(20 * var(--u));fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.m-back{margin-right:calc(12 * var(--u))}
+.m-search{margin-left:auto}
+.m-bar > div{flex:1}
+.m-bar-name{font-weight:800;display:flex;align-items:center;font-size:calc(20 * var(--u));line-height:calc(24 * var(--u));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .m-bar-sub{font-size:calc(13 * var(--u));line-height:calc(16 * var(--u));color:var(--xm)}
 .m-bar > div{min-width:0}
 .m-hero{position:relative}
@@ -111,24 +120,32 @@ button{font:inherit;color:inherit}
 .m-av{position:absolute;left:calc(16 * var(--u));bottom:calc(var(--av) * var(--u) / -2);width:calc(var(--av) * var(--u));height:calc(var(--av) * var(--u));border-radius:50%;background:var(--xb);padding:calc(4 * var(--u));transition:opacity .2s}
 .ghost .m-av{opacity:.3}
 .m-av-img{width:100%;height:100%;border-radius:50%;background-color:var(--xph);background-repeat:no-repeat}
-.m-actions{height:calc((var(--av) / 2 + 14) * var(--u));display:flex;justify-content:flex-end;align-items:flex-start;padding:calc(12 * var(--u)) calc(16 * var(--u)) 0}
+.m-actions{height:calc((var(--av) / 2 + 17) * var(--u));display:flex;justify-content:flex-end;align-items:flex-start;padding:calc(12 * var(--u)) calc(16 * var(--u)) 0}
 .m-follow{height:calc(36 * var(--u));padding:0 calc(16 * var(--u));border-radius:9999px;background:var(--xbtn);color:var(--xbtnt);font-weight:700;display:inline-flex;align-items:center}
 .m-info{padding:0 calc(16 * var(--u))}
-.m-name{font-weight:800;font-size:calc(20 * var(--u));line-height:calc(24 * var(--u));overflow-wrap:anywhere}
+.m-name{font-weight:700;font-size:calc(20 * var(--u));line-height:calc(24 * var(--u));overflow-wrap:anywhere}
+.vb{display:inline-block;flex:none;width:1em;height:1em;margin-left:.1em;vertical-align:-.15em;fill:var(--xblue)}
+.nobadge .vb{display:none}
+.m-l{color:var(--xblue);white-space:nowrap}
 .m-handle,.m-muted{color:var(--xm)}
-.m-bio{margin-top:calc(12 * var(--u));white-space:pre-wrap;overflow-wrap:anywhere}
+.m-bio{margin-top:calc(16 * var(--u));white-space:pre-wrap;overflow-wrap:break-word}
 .m-meta{margin-top:calc(12 * var(--u));color:var(--xm);display:flex;flex-wrap:wrap;column-gap:calc(12 * var(--u))}
+.m-meta > span{display:inline-flex;align-items:center;gap:calc(4 * var(--u))}
+.m-meta svg{flex:none;width:calc(18 * var(--u));height:calc(18 * var(--u));fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .m-link{color:var(--xblue)}
 .m-counts{margin-top:calc(12 * var(--u));display:flex;gap:calc(20 * var(--u));color:var(--xm)}
 .m-counts b{color:var(--xt)}
-.m-tabs{margin-top:calc(16 * var(--u));display:flex;border-bottom:1px solid var(--xl);height:calc(53 * var(--u))}
+.m-tabs{margin-top:calc(16 * var(--u));display:flex;border-bottom:1px solid var(--xl);height:calc(52 * var(--u))}
 .m-tabs span{flex:1;display:flex;align-items:center;justify-content:center;color:var(--xm);position:relative}
 .m-tabs .on{color:var(--xt);font-weight:700}
-.m-tabs .on::after{content:"";position:absolute;bottom:0;height:calc(4 * var(--u));width:calc(56 * var(--u));background:var(--xblue);border-radius:9999px}
+.m-tabs .on i{font-style:normal;position:relative;height:100%;min-width:calc(56 * var(--u));display:inline-flex;align-items:center;justify-content:center;gap:calc(4 * var(--u))}
+.m-tabs .on i::after{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(4 * var(--u));background:var(--xblue);border-radius:9999px}
+.m-tabs .on svg{width:calc(18 * var(--u));height:calc(18 * var(--u));fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .m-post{display:flex;gap:calc(8 * var(--u));padding:calc(12 * var(--u)) calc(16 * var(--u));border-bottom:1px solid var(--xl)}
 .m-pav{flex:none;width:calc(40 * var(--u));height:calc(40 * var(--u));border-radius:50%;background-color:var(--xph);background-repeat:no-repeat}
 .m-pbody{min-width:0;flex:1}
 .m-pname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-pname .vb{vertical-align:-.2em}
 .m-ptext{white-space:pre-wrap;overflow-wrap:anywhere}
 .m-pact{display:flex;justify-content:space-between;margin-top:calc(12 * var(--u));color:var(--xm);font-size:calc(13 * var(--u));max-width:calc(425 * var(--u))}
 .m-pact span{display:inline-flex;align-items:center;gap:calc(4 * var(--u))}
@@ -161,6 +178,68 @@ button{font:inherit;color:inherit}
 .cmp-cap span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cmp.on .frame{box-shadow:0 0 0 3px var(--tape)}
 .empty{color:var(--muted);font-size:14px;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:16px}
+.cmp{container-type:inline-size}
+
+/* iPhone アプリ。数字は画面幅 393 の pt（iPhone のスクショ 1179px の 1/3）。寸法の出どころは README */
+.dev.ip{flex:0 1 340px;max-width:340px;container-type:inline-size}
+.ip-ctrl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.ip-zones{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px;align-items:start}
+.ip-side{min-width:0;display:grid;gap:12px;align-content:start}
+@media (max-width:720px){ .ip-zones{grid-template-columns:minmax(0,1fr)} }
+.phone{background:#0A0A0B;padding:7px 7px 0;border-radius:calc((100cqw - 14px) * 55 / 393 + 7px) calc((100cqw - 14px) * 55 / 393 + 7px) 0 0}
+.phone.fade{-webkit-mask-image:linear-gradient(#000 84%,transparent);mask-image:linear-gradient(#000 84%,transparent)}
+.cmp .ip-frame{border:0;border-radius:calc((100cqw - 14px) * 55 / 393 + 7px) calc((100cqw - 14px) * 55 / 393 + 7px) 0 0}
+.mock.mock-ip{--W:393;background:transparent}
+.ipm{position:relative;border-radius:calc(55 * var(--u)) calc(55 * var(--u)) 0 0;font-family:-apple-system,"SF Pro Text","Hiragino Sans","Hiragino Kaku Gothic ProN",var(--f-x);font-size:calc(16.5 * var(--u));line-height:calc(20.333 * var(--u))}
+.ip-head{position:relative;height:calc(157.333 * var(--u));overflow:hidden;background:var(--xph)}
+.ip-head-img{position:absolute;top:0;height:100%;left:calc(-39.5 * var(--u));width:calc(472 * var(--u));background-color:var(--xph);background-repeat:no-repeat}
+.ip-grad{position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,0))}
+.ip-ov{position:absolute}
+.ip-di{background:#000;border-radius:9999px}
+.ip-st{color:#FFFFFF;display:flex;align-items:center;font-weight:600;font-size:calc(17 * var(--u));line-height:1;letter-spacing:-.01em;white-space:nowrap}
+.ip-sys{gap:calc(6 * var(--u))}
+.ip-sys svg{flex:none;fill:#FFFFFF}
+.ip-btn{border-radius:50%;background:rgba(24,24,26,.42);-webkit-backdrop-filter:blur(10px) saturate(1.3);backdrop-filter:blur(10px) saturate(1.3);display:grid;place-items:center}
+.ip-btn svg{width:calc(23 * var(--u));height:calc(23 * var(--u));fill:none;stroke:#FFFFFF;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ip-av{position:absolute;left:calc(5.167 * var(--u));top:calc(141.333 * var(--u));width:calc(87.333 * var(--u));height:calc(87.333 * var(--u));border-radius:50%;background:var(--xb);padding:calc(3.667 * var(--u));transition:opacity .2s}
+.ghost .ip-av{opacity:.3}
+.ip-acts{position:absolute;top:calc(169.667 * var(--u));right:calc(9.667 * var(--u));display:flex;gap:calc(8.333 * var(--u))}
+.ip-act{width:calc(39.333 * var(--u));height:calc(39.333 * var(--u));border-radius:50%;border:1px solid var(--xl);display:grid;place-items:center}
+.ip-act svg,.ip-tabs svg,.ip-meta svg{width:calc(20 * var(--u));height:calc(20 * var(--u));fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ip-body{padding:calc(80.667 * var(--u)) calc(10 * var(--u)) 0}
+.ip-short{padding-bottom:calc(18 * var(--u))}
+.ip-name{font-weight:800;font-size:calc(21 * var(--u));line-height:calc(28 * var(--u));overflow-wrap:anywhere}
+.ip-handle{color:var(--xm);margin-top:calc(2 * var(--u))}
+.ip-bio{margin-top:calc(12.5 * var(--u));white-space:pre-wrap;overflow-wrap:break-word;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
+.ip-meta{margin-top:calc(7 * var(--u));color:var(--xm);display:grid;row-gap:calc(5.667 * var(--u))}
+.ip-meta span{display:flex;align-items:center;gap:calc(4 * var(--u));min-width:0}
+.ip-meta svg{width:calc(17 * var(--u));height:calc(17 * var(--u));flex:none}
+.ip-counts{margin-top:calc(7.667 * var(--u));display:flex;gap:calc(14 * var(--u));color:var(--xm)}
+.ip-counts b{color:var(--xt)}
+.ip-btns{margin-top:calc(14 * var(--u));display:grid;grid-template-columns:1fr 1fr;gap:calc(8.667 * var(--u))}
+.ip-btns span{height:calc(38.667 * var(--u));border-radius:9999px;border:1px solid var(--xl);display:grid;place-items:center;font-weight:700;white-space:nowrap}
+.ip-btns .fill{background:var(--xbtn);color:var(--xbtnt);border-color:var(--xbtn)}
+.ip-tabs{display:flex;height:calc(52 * var(--u));border-bottom:1px solid var(--xl);margin:0 calc(-10 * var(--u))}
+.ip-tabs span{flex:1;display:flex;align-items:center;justify-content:center;color:var(--xm);position:relative}
+.ip-tabs svg{width:calc(23 * var(--u));height:calc(23 * var(--u))}
+.ip-tabs .on{flex:0 0 calc(135 * var(--u));color:var(--xt);font-weight:700;gap:calc(6 * var(--u))}
+.ip-tabs .on::after{content:"";position:absolute;bottom:0;left:calc(19.667 * var(--u));right:0;height:calc(2 * var(--u));background:var(--xt);border-radius:9999px}
+/* 重なるものを枠だけにする（下のヘッダーを見る） */
+.ipg .ip-hide{background:rgba(255,59,48,.16)!important;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:inset 0 0 0 calc(2 * var(--u)) #FF3B30;opacity:1!important}
+.ipg .ip-hide > *{visibility:hidden}
+.ipg .ip-dim{background:rgba(240,180,22,.16);box-shadow:inset 0 0 0 calc(1.5 * var(--u)) #F0B416}
+.ipg .ip-dim > *{opacity:.35}
+.ip-map{margin:0;display:grid;gap:8px;min-width:0}
+.ip-map figcaption{font-size:13px;color:var(--muted)}
+.ip-map figcaption b{color:var(--ink)}
+.ip-map-img{position:relative;aspect-ratio:3/1;border-radius:4px;overflow:hidden;background-color:var(--line);background-repeat:no-repeat}
+.ip-map-img svg{position:absolute;inset:0;width:100%;height:100%}
+.ip-legend{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13px}
+.ip-legend li{display:flex;gap:8px;align-items:flex-start}
+.sw{flex:none;width:14px;height:14px;border-radius:3px;margin-top:4px}
+.sw-hide{background:rgba(255,59,48,.42);box-shadow:inset 0 0 0 2px #FF3B30}
+.sw-dim{background:rgba(240,180,22,.4);box-shadow:inset 0 0 0 2px #F0B416}
+.sw-cut{background:repeating-linear-gradient(45deg,rgba(16,20,24,.6) 0 4px,rgba(255,255,255,.5) 4px 7px)}
 
 /* 文字 */
 .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
@@ -173,7 +252,7 @@ button{font:inherit;color:inherit}
 .drop{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:color-mix(in srgb, var(--bg) 82%, transparent);border:3px dashed var(--tape);font-family:var(--f-display);font-size:20px;text-align:center;padding:24px}
 
 @media (max-width:720px){ .adjust{grid-template-columns:minmax(0,1fr)} }
-@media (prefers-reduced-motion: reduce){ .m-av{transition:none} }
+@media (prefers-reduced-motion: reduce){ .m-av,.ip-av{transition:none} }
 </style>
 </head>
 <body>
@@ -185,16 +264,20 @@ button{font:inherit;color:inherit}
       <div class="rack" id="rack-icon">
         <span class="rack-label">アイコン</span>
         <div class="thumbs" id="thumbs-icon"></div>
-        <button class="add" type="button" data-add="icon">＋ 画像を追加</button>
-        <button class="add" type="button" data-del="icon">選んで削除</button>
-        <span class="del-acts" id="del-acts-icon" hidden><span class="hint">消す画像を押して選んでください</span><button class="btn danger" type="button" id="del-go-icon" data-del-go="icon" disabled>削除する</button><button class="btn" type="button" data-del-cancel="icon">やめる</button></span>
+        <div class="rack-acts">
+          <button class="add" type="button" data-add="icon">＋ 画像を追加</button>
+          <button class="add" type="button" data-del="icon">選んで削除</button>
+          <span class="del-acts" id="del-acts-icon" hidden><span class="hint">消す画像を押して選んでください</span><button class="btn danger" type="button" id="del-go-icon" data-del-go="icon" disabled>削除する</button><button class="btn" type="button" data-del-cancel="icon">やめる</button></span>
+        </div>
       </div>
       <div class="rack" id="rack-header">
         <span class="rack-label">ヘッダー</span>
         <div class="thumbs" id="thumbs-header"></div>
-        <button class="add" type="button" data-add="header">＋ 画像を追加</button>
-        <button class="add" type="button" data-del="header">選んで削除</button>
-        <span class="del-acts" id="del-acts-header" hidden><span class="hint">消す画像を押して選んでください</span><button class="btn danger" type="button" id="del-go-header" data-del-go="header" disabled>削除する</button><button class="btn" type="button" data-del-cancel="header">やめる</button></span>
+        <div class="rack-acts">
+          <button class="add" type="button" data-add="header">＋ 画像を追加</button>
+          <button class="add" type="button" data-del="header">選んで削除</button>
+          <span class="del-acts" id="del-acts-header" hidden><span class="hint">消す画像を押して選んでください</span><button class="btn danger" type="button" id="del-go-header" data-del-go="header" disabled>削除する</button><button class="btn" type="button" data-del-cancel="header">やめる</button></span>
+        </div>
       </div>
       <div class="view-opts">
         <div class="seg" role="group" aria-label="X の表示の色">
@@ -218,10 +301,37 @@ button{font:inherit;color:inherit}
         <figcaption><b>パソコン</b><span class="tape">幅 600</span><span class="tape">ヘッダー 600×200</span><span class="tape">アイコン 128</span></figcaption>
         <div class="frame" id="mock-pc"></div>
       </figure>
-      <figure class="dev sp">
-        <figcaption><b>スマホ（Web版）</b><span class="tape">幅 375</span><span class="tape">ヘッダー 375×125</span><span class="tape">アイコン 78</span></figcaption>
-        <div class="frame" id="mock-sp"></div>
+      <figure class="dev ip">
+        <figcaption><b>iPhone アプリ</b><span class="tape">幅 393</span><span class="tape">ヘッダー 393×157</span><span class="tape">アイコン 80</span></figcaption>
+        <div class="ip-ctrl">
+          <div class="seg" role="group" aria-label="だれが見たときか">
+            <button type="button" data-ipv="other">他の人が見たとき</button>
+            <button type="button" data-ipv="self">自分で見たとき</button>
+          </div>
+          <label class="chk"><input type="checkbox" id="ipghost"> 重なるものを枠だけにして、下のヘッダーを見る</label>
+        </div>
+        <div class="phone fade"><div id="mock-ip"></div></div>
       </figure>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>iPhone アプリで隠れるところ</h2>
+      <p>X の iPhone アプリでは、ヘッダーの上に時刻や電池の表示と丸いボタンが重なり、画面の上のカメラの黒い部分（ダイナミックアイランド）でも隠れます。ヘッダーの左右も少し切れます。下の図は、ヘッダーの画像のどこがそうなるかを色で示したものです。ヘッダーを見るのはほとんど他の人なので、上の見本は「他の人が見たとき」で確かめるのがおすすめです。</p>
+    </div>
+    <div class="ip-zones">
+      <figure class="ip-map">
+        <figcaption><b>ヘッダーの画像（1500×500）のどこが隠れるか</b>（<span id="ip-map-view">他の人が見たとき</span>）</figcaption>
+        <div class="ip-map-img" data-img="header"><svg viewBox="0 0 1500 500" aria-hidden="true" id="ip-map-svg"></svg></div>
+      </figure>
+      <div class="ip-side">
+        <ul class="ip-legend">
+          <li><i class="sw sw-hide"></i><span><b>赤</b>　隠れて見えない。カメラの黒い部分、丸いボタン、アイコン、画面の角の丸み</span></li>
+          <li><i class="sw sw-dim"></i><span><b>黄色</b>　時刻・電波・電池の白い文字が重なって読みにくい</span></li>
+          <li><i class="sw sw-cut"></i><span><b>斜線</b>　切れて映らない。iPhone アプリはヘッダーを横長 2.5:1 で見せるので、左右が約 125 ずつ切れる（上下は切れない）</span></li>
+        </ul>
+        <p class="hint">1500×500 の画像で言うと、上から約 340 までの帯に時刻・黒い部分・丸いボタンが重なります。文字を入れるなら、上から 340〜500 で左右 125 より内側が安全です（左下はアイコンが重なります）。上のほうは少し暗くなります（いちばん上で 25% ほど）。</p>      </div>
     </div>
   </section>
 
@@ -244,14 +354,15 @@ button{font:inherit;color:inherit}
         <div class="crop crop-header" id="crop-header" tabindex="0" role="img" aria-label="ヘッダーの切り抜き。ドラッグか矢印キーで位置を動かせます">
           <svg viewBox="0 0 1500 500" preserveAspectRatio="none" aria-hidden="true" id="cover-svg">
             <circle cx="210" cy="500" r="170" fill="rgba(0,0,0,.42)" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="14 10"/>
-            <circle cx="235.5" cy="500" r="171.5" fill="rgba(0,0,0,.18)" stroke="#F0B416" stroke-width="3" stroke-dasharray="6 8"/>
           </svg>
+          <svg viewBox="0 0 1500 500" preserveAspectRatio="none" aria-hidden="true" id="ip-svg"></svg>
         </div>
         <div class="ctrl"><label for="zoom-header">拡大</label><input type="range" id="zoom-header" min="1" max="4" step="0.01" value="1"><span class="zv" id="zv-header">1.00×</span>
-          <label class="chk"><input type="checkbox" id="cover" checked> アイコンが重なるところ</label></div>
+          <label class="chk"><input type="checkbox" id="cover" checked> パソコンでアイコンが重なるところ</label>
+          <label class="chk"><input type="checkbox" id="ipcover" checked> iPhone アプリで隠れるところ</label></div>
         <div class="meta" id="meta-header"></div>
         <div class="ctrl"><button class="btn" type="button" data-reset="header">位置をもどす</button><button class="btn" type="button" data-remove="header">この候補を外す</button></div>
-        <p class="legend">左下の半円がアイコンで隠れるところです。1500×500 の画像で言うと、左端から 40〜407、下から約 170 まで。パソコン（白い線）とスマホ（黄色の線）でほぼ同じ場所です。</p>
+        <p class="legend">白い線の半円は、パソコンでアイコンに隠れるところです。1500×500 の画像で言うと、左端から 40〜380、下から約 170 まで。赤・黄色・斜線は、iPhone アプリで隠れるところ・読みにくいところ・切れるところです（上の「iPhone アプリで隠れるところ」と同じ）。</p>
       </div>
     </div>
   </section>
@@ -259,7 +370,7 @@ button{font:inherit;color:inherit}
   <section>
     <div class="sec-head">
       <h2>ヘッダーの候補を並べる</h2>
-      <p>入れたヘッダーをスマホの見え方で並べます。押すとそのヘッダーに切り替わります。</p>
+      <p>入れたヘッダーを iPhone アプリの見え方で並べます。押すとそのヘッダーに切り替わります。</p>
     </div>
     <div id="cmp-headers"></div>
   </section>
@@ -285,14 +396,21 @@ const SAMPLES = [
 const FIELDS = [
   {k:'name', label:'名前', v:'ともす｜note'},
   {k:'handle', label:'ユーザー名（@ のあと）', v:'tomosu_note0'},
-  {k:'bio', label:'自己紹介', v:'暮らしの著者になる｜文章で自分の望む暮らしをつくる｜日常や頭の中から書く題材を見つけるヒントを発信｜会社を辞めたくて副業を始め、独立も挫折も経験｜今は事務職しながらnote書いています', multi:true, wide:true},
+  {k:'bio', label:'自己紹介', v:'ふつうの事務員がnote書いてます｜いろんな人に教わりながらnoteを研究中｜IR情報・伸ばし方・続け方・収益化｜学んだこと・試したこと・自分なりの考えを発信｜ゼネコン→独立→失敗→事務｜Xプロフ試着室はこちら→tomosu-note.github.io/x-profile-prev…', multi:true, wide:true},
   {k:'link', label:'リンク', v:'note.com/tomosu_note'},
   {k:'joined', label:'利用開始', v:'2026年9月からXを利用しています'},
-  {k:'following', label:'フォロー中', v:'33'},
-  {k:'followers', label:'フォロワー', v:'32'},
-  {k:'posts', label:'ポスト数', v:'254'},
+  {k:'following', label:'フォロー中', v:'35'},
+  {k:'followers', label:'フォロワー', v:'43'},
+  {k:'posts', label:'ポスト数', v:'415'},
   {k:'post', label:'ポストの見本', v:'これはタイムラインでの見え方を確かめるための見本の文です。アイコンの大きさと、名前の並び方を見てください。', multi:true, wide:true},
 ];
+// 前の見本の文字。保存された値がこれと同じなら「書き換えていない」とみなし、新しい見本を出す
+const OLD = {
+  bio:['暮らしの著者になる｜文章で自分の望む暮らしをつくる｜日常や頭の中から書く題材を見つけるヒントを発信｜会社を辞めたくて副業を始め、独立も挫折も経験｜今は事務職しながらnote書いています',
+    'ふつうの事務員がnote書いてます｜いろんな人に教わりながらnoteを研究中｜IR情報・伸ばし方・続け方・収益化｜学んだこと・試したこと・自分なりの考えを発信｜ゼネコン→独立→失敗→事務｜Xプロフ試着室はこちら→tomosu-note.github.io/x-profile-preview/'],
+  following:['33'], followers:['32'], posts:['254'],
+  post:['はじめまして、ともすです。\nふつうの事務員をしながらnoteを書いてます。\n名前の「ともす」には\n・自分の心の火を灯し続ける\n・遠回りした人生にも続きを灯す\n・その火で誰かに明かりを灯す\nの3つの意味を込めました…'],
+};
 const LS = 'xpv:v1';
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
@@ -305,9 +423,13 @@ const S = {
   sel: Object.assign({icon:null, header:null}, saved.sel),
   x: saved.x || 'light',
   ghost: !!saved.ghost,
+  badge: saved.badge !== false,
   cover: saved.cover !== false,
-  text: Object.fromEntries(FIELDS.map(f => [f.k, (saved.text && saved.text[f.k] != null) ? saved.text[f.k] : f.v])),
+  text: Object.fromEntries(FIELDS.map(f => { const v = saved.text ? saved.text[f.k] : null; return [f.k, (v != null && !(OLD[f.k] || []).includes(v)) ? v : f.v]; })),
   hidden: Array.isArray(saved.hidden) ? saved.hidden : [],
+  ipView: saved.ipView === 'self' ? 'self' : 'other',
+  ipGhost: !!saved.ipGhost,
+  ipCover: saved.ipCover !== false,
   del: {icon:false, header:false},
   picked: new Set(),
 };
@@ -316,7 +438,9 @@ function withCrop(it){ const c = crops[it.id] || {}; return Object.assign({zoom:
 function save(){
   try {
     localStorage.setItem(LS, JSON.stringify({
-      x:S.x, ghost:S.ghost, cover:S.cover, sel:S.sel, text:S.text, hidden:S.hidden,
+      x:S.x, ghost:S.ghost, badge:S.badge, cover:S.cover, sel:S.sel, hidden:S.hidden,
+      text:Object.fromEntries(FIELDS.filter(f => S.text[f.k] !== f.v).map(f => [f.k, S.text[f.k]])),
+      ipView:S.ipView, ipGhost:S.ipGhost, ipCover:S.ipCover,
       crops:Object.fromEntries(S.items.map(i => [i.id, {zoom:i.zoom, px:i.px, py:i.py}])),
     }));
   } catch (e) {}
@@ -359,6 +483,12 @@ function paint(){
   });
 }
 
+// 認証マーク（青い波形の丸に白いチェック）。X のものに似せた形
+const VB = (() => {
+  const pts = [];
+  for (let i = 0; i < 16; i++) { const a = Math.PI * 2 * i / 16 - Math.PI / 2, r = i % 2 ? 9.4 : 11.2; pts.push(`${(12 + r * Math.cos(a)).toFixed(2)} ${(12 + r * Math.sin(a)).toFixed(2)}`); }
+  return `<svg class="vb" viewBox="0 0 24 24" aria-label="認証済み"><path d="M${pts.join('L')}Z" stroke="var(--xblue)" stroke-width="2.2" stroke-linejoin="round"/><path d="M7.6 12.3l3 3 5.8-6.2" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+})();
 const ACT = `<div class="m-pact">
   <span><svg viewBox="0 0 24 24"><path d="M4 5.5h16v10.5H10l-4.5 3.5V16H4z"/></svg>2</span>
   <span><svg viewBox="0 0 24 24"><path d="M7 6v10h9M4 9l3-3 3 3M17 18V8H8M20 15l-3 3-3-3"/></svg>3</span>
@@ -367,31 +497,114 @@ const ACT = `<div class="m-pact">
 </div>`;
 function mockHTML(kind, x, headerAttr){
   return `<div class="mock xt mock-${kind}" data-x="${x}"><div class="m">
-    <div class="m-bar"><span class="m-back" aria-hidden="true">←</span><div><div class="m-bar-name" data-t="name"></div><div class="m-bar-sub"><span data-t="posts"></span> 件のポスト</div></div></div>
+    <div class="m-bar"><span class="m-ico m-back" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 12H4M10 6l-6 6 6 6"/></svg></span><div><div class="m-bar-name"><span data-t="name"></span>${VB}</div><div class="m-bar-sub"><span data-t="posts"></span> 件のポスト</div></div><span class="m-ico m-search" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></span></div>
     <div class="m-hero"><div class="m-head" ${headerAttr}></div><div class="m-av"><div class="m-av-img" data-img="icon"></div></div></div>
     <div class="m-actions"><span class="m-follow">フォロー</span></div>
     <div class="m-info">
-      <div class="m-name" data-t="name"></div>
+      <div class="m-name"><span data-t="name"></span>${VB}</div>
       <div class="m-handle">@<span data-t="handle"></span></div>
       <div class="m-bio" data-t="bio"></div>
-      <div class="m-meta"><span class="m-link" data-t="link"></span><span data-t="joined"></span></div>
+      <div class="m-meta"><span>${svgI('link')}<span class="m-link" data-t="link"></span></span><span>${svgI('cal')}<span data-t="joined"></span><svg viewBox="0 0 24 24" style="width:calc(15 * var(--u));height:calc(15 * var(--u))"><path d="M9 6l6 6-6 6"/></svg></span></div>
       <div class="m-counts"><span><b data-t="following"></b> フォロー中</span><span><b data-t="followers"></b> フォロワー</span></div>
     </div>
-    <div class="m-tabs"><span class="on">ポスト</span><span>返信</span><span>メディア</span></div>
+    <div class="m-tabs"><span class="on"><i>ポスト<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></i></span><span>返信</span><span>リポスト</span><span>メディア</span></div>
     <div class="m-post"><div class="m-pav" data-img="icon"></div><div class="m-pbody">
-      <div class="m-pname"><b data-t="name"></b> <span class="m-muted">@<span data-t="handle"></span> · 1時間</span></div>
+      <div class="m-pname"><b data-t="name"></b>${VB} <span class="m-muted">@<span data-t="handle"></span> · 1時間</span></div>
       <div class="m-ptext" data-t="post"></div>${ACT}</div></div>
   </div></div>`;
 }
-function heroHTML(x, hid){
-  return `<div class="mock xt mock-sp" data-x="${x}"><div class="m">
-    <div class="m-hero"><div class="m-head" data-img-id="${esc(hid)}"></div><div class="m-av"><div class="m-av-img" data-img="icon"></div></div></div>
-    <div class="m-actions"><span class="m-follow">フォロー</span></div>
-    <div class="m-info" style="padding-bottom:calc(16 * var(--u))"><div class="m-name" data-t="name"></div><div class="m-handle">@<span data-t="handle"></span></div></div>
+
+// iPhone の X アプリ。2026-11-09 に iPhone（スクショ 1179×2556＝画面の幅 393pt）で測った。単位は pt
+// ヘッダーは 3:1 の画像を高さ 157.333 に合わせて中央で切る（左右 39.5 ずつ切れる）。上に黒の 25%→0% のグラデーション
+const IP = {
+  headH:157.333, imgX:-39.5, corner:55,
+  di:{x:133.5, y:11, w:126, h:37.333},
+  time:{x:42, y:22.3, w:58.3, h:13.7},
+  sys:{x:281.7, y:22.3, w:78.3, h:13.7},
+  btnY:86.667, btnR:20,
+  btns:{other:[['back', 35.667], ['more', 260.667], ['grok', 308.667], ['search', 356.667]], self:[['back', 35.667], ['search', 356.667]]},
+  av:{cx:48.833, cy:185, r:43.667},
+};
+const U = n => `calc(${n} * var(--u))`;
+const box = b => `left:${U(b.x)};top:${U(b.y)};width:${U(b.w)};height:${U(b.h)}`;
+const IPI = {
+  back:'<path d="M14.5 5l-7 7 7 7"/>',
+  search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/>',
+  more:'<circle cx="5.5" cy="12" r="1.7" fill="#FFFFFF" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="#FFFFFF" stroke="none"/><circle cx="18.5" cy="12" r="1.7" fill="#FFFFFF" stroke="none"/>',
+  grok:'<circle cx="12" cy="12" r="6.5"/><path d="M5 19L19 5"/>',
+};
+const SIG = `<svg viewBox="0 0 20 13" style="width:${U(20)};height:${U(13)}"><rect x="0" y="8" width="3.4" height="5" rx="1"/><rect x="5.5" y="5.5" width="3.4" height="7.5" rx="1"/><rect x="11" y="3" width="3.4" height="10" rx="1"/><rect x="16.5" y="0" width="3.4" height="13" rx="1"/></svg>`;
+const BAT = `<svg viewBox="0 0 27 13" style="width:${U(27)};height:${U(13)}"><rect x=".6" y=".6" width="23.4" height="11.8" rx="3.8" fill="none" stroke="#FFFFFF" stroke-opacity=".45" stroke-width="1.2"/><rect x="2.2" y="2.2" width="14" height="8.6" rx="2.4"/><rect x="25" y="4.3" width="1.8" height="4.4" rx=".9" fill-opacity=".45"/></svg>`;
+const ICO = {
+  bell:'<path d="M6.5 16.5v-5a5.5 5.5 0 0 1 9-4.2M17.5 11.5v5l1.5 2H5l1.5-2M10 21h4M19 3v5M16.5 5.5h5"/>',
+  share:'<path d="M12 15V4M8 8l4-4 4 4M5 13v6.5h14V13"/>',
+  link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  cal:'<rect x="4" y="5.5" width="16" height="14" rx="2"/><path d="M4 10h16M8.5 3.5v3.5M15.5 3.5v3.5"/>',
+  reply:'<path d="M4 6.5a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-5 3.5V17h0a2 2 0 0 1-2-2z"/>',
+  repost:'<path d="M7 6v10h9M4 9l3-3 3 3M17 18V8H8M20 15l-3 3-3-3"/>',
+  video:'<rect x="4" y="6.5" width="16" height="13" rx="2"/><path d="M7 3.5h10M10.5 10.5v5l4-2.5z"/>',
+};
+const svgI = k => `<svg viewBox="0 0 24 24">${ICO[k]}</svg>`;
+function ipHTML(x, headerAttr, view, full){
+  const btns = (IP.btns[view] || IP.btns.other).map(([k, cx]) => `<span class="ip-ov ip-btn ip-hide" style="${box({x:cx - IP.btnR, y:IP.btnY - IP.btnR, w:IP.btnR * 2, h:IP.btnR * 2})}"><svg viewBox="0 0 24 24">${IPI[k]}</svg></span>`).join('');
+  const other = view !== 'self';
+  const body = full
+    ? `<div class="ip-body">
+        <div class="ip-name"><span data-t="name"></span>${VB}</div>
+        <div class="ip-handle">@<span data-t="handle"></span></div>
+        <div class="ip-bio" data-t="bio"></div>
+        <div class="ip-meta"><span>${svgI('link')}<span class="m-link" data-t="link"></span></span><span>${svgI('cal')}<span data-t="joined"></span></span></div>
+        <div class="ip-counts"><span><b data-t="following"></b> フォロー中</span><span><b data-t="followers"></b> フォロワー</span></div>
+        <div class="ip-btns">${other ? '<span>メッセージ</span><span class="fill">フォローする</span>' : '<span>プロフィールを共有</span><span>プロフィールを編集</span>'}</div>
+        <div class="ip-tabs"><span class="on">ポスト ▾</span><span>${svgI('reply')}</span><span>${svgI('repost')}</span><span>${svgI('video')}</span></div>
+      </div>`
+    : `<div class="ip-body ip-short"><div class="ip-name"><span data-t="name"></span>${VB}</div><div class="ip-handle">@<span data-t="handle"></span></div></div>`;
+  return `<div class="mock xt mock-ip" data-x="${x}"><div class="m ipm">
+    <div class="ip-head"><div class="ip-head-img" ${headerAttr}></div><div class="ip-grad"></div></div>
+    <span class="ip-ov ip-st ip-dim" style="${box(IP.time)}"><span>12:34</span></span>
+    <span class="ip-ov ip-st ip-sys ip-dim" style="${box(IP.sys)}">${SIG}<span>5G</span>${BAT}</span>
+    <span class="ip-ov ip-di ip-hide" style="${box(IP.di)}"></span>
+    ${btns}
+    <div class="ip-av ip-hide"><div class="m-av-img" data-img="icon"></div></div>
+    ${other ? `<div class="ip-acts"><span class="ip-act">${svgI('bell')}</span><span class="ip-act">${svgI('share')}</span></div>` : ''}
+    ${body}
   </div></div>`;
 }
+// 1500×500 のヘッダー画像の上で、iPhone アプリで隠れるところ（赤）・読みにくいところ（黄）・切れるところ（斜線）
+function ipZonesSVG(view, pid){
+  const k = 500 / IP.headH, ox = -IP.imgX * k, W = 393, R = IP.corner, pad = 2;
+  const n = v => Math.round(v * 10) / 10;
+  const X = x => n(ox + x * k), Y = y => n(y * k), L = v => n(v * k);
+  const HIDE = 'fill="rgba(255,59,48,.42)" stroke="#FF3B30" stroke-width="4"';
+  const DIM = 'fill="rgba(240,180,22,.4)" stroke="#F0B416" stroke-width="4"';
+  let s = `<defs><pattern id="${pid}-cut" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="22" height="22" fill="rgba(16,20,24,.6)"/><rect width="8" height="22" fill="rgba(255,255,255,.4)"/></pattern></defs>`;
+  s += `<rect x="0" y="0" width="${X(0)}" height="500" fill="url(#${pid}-cut)"/><rect x="${X(W)}" y="0" width="${n(1500 - X(W))}" height="500" fill="url(#${pid}-cut)"/>`;
+  s += `<path d="M${X(0)} 0V500M${X(W)} 0V500" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="12 8"/>`;
+  s += `<path d="M${X(0)} 0H${X(R)}A${L(R)} ${L(R)} 0 0 0 ${X(0)} ${Y(R)}Z" ${HIDE}/>`;
+  s += `<path d="M${X(W)} 0H${X(W - R)}A${L(R)} ${L(R)} 0 0 1 ${X(W)} ${Y(R)}Z" ${HIDE}/>`;
+  [IP.time, IP.sys].forEach(b => { s += `<rect x="${X(b.x - pad)}" y="${Y(b.y - pad)}" width="${L(b.w + pad * 2)}" height="${L(b.h + pad * 2)}" rx="10" ${DIM}/>`; });
+  s += `<rect x="${X(IP.di.x)}" y="${Y(IP.di.y)}" width="${L(IP.di.w)}" height="${L(IP.di.h)}" rx="${L(IP.di.h / 2)}" ${HIDE}/>`;
+  (IP.btns[view] || IP.btns.other).forEach(([, cx]) => { s += `<circle cx="${X(cx)}" cy="${Y(IP.btnY)}" r="${L(IP.btnR)}" ${HIDE}/>`; });
+  s += `<circle cx="${X(IP.av.cx)}" cy="${Y(IP.av.cy)}" r="${L(IP.av.r)}" ${HIDE}/>`;
+  return s;
+}
+function renderIp(){
+  $('#app').classList.toggle('ipg', S.ipGhost);
+  $('#ipghost').checked = S.ipGhost;
+  $('#ipcover').checked = S.ipCover;
+  $$('.seg button[data-ipv]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.ipv === S.ipView)));
+  $('#ip-map-view').textContent = S.ipView === 'self' ? '自分で見たとき' : '他の人が見たとき';
+  $('#mock-ip').innerHTML = ipHTML(S.x, 'data-img="header"', S.ipView, true);
+  $('#ip-map-svg').innerHTML = ipZonesSVG(S.ipView, 'ipmap');
+  const cs = $('#ip-svg');
+  cs.innerHTML = ipZonesSVG(S.ipView, 'ipcrop');
+  cs.style.display = S.ipCover ? '' : 'none';
+}
 
-function renderTexts(){ $$('[data-t]').forEach(el => { el.textContent = S.text[el.dataset.t] ?? ''; }); }
+// 自己紹介の中の URL・@ユーザー名・#ハッシュタグは X と同じく青くする（URL は途中で折り返さない）
+const LINKRE = /((?:https?:\/\/)?[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+(?:\/[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%…]*)?|@[A-Za-z0-9_]+|#[\p{L}\p{N}_]+)/gu;
+function linkify(t){ return esc(t).replace(LINKRE, m => `<wbr><span class="m-l">${m.replace(/^https?:\/\//, '')}</span>`); }
+function renderTexts(){ $$('[data-t]').forEach(el => { const v = S.text[el.dataset.t] ?? ''; if (el.dataset.t === 'bio') el.innerHTML = linkify(v); else el.textContent = v; }); }
 function renderThumbs(){
   ['icon', 'header'].forEach(k => {
     $('#thumbs-' + k).innerHTML = byKind(k).map(it => `<button type="button" class="th" data-kind="${k}" data-id="${esc(it.id)}" data-img-id="${esc(it.id)}" data-picked="${S.picked.has(it.id)}" title="${esc(it.name)}" aria-label="${esc(it.name)}"></button>`).join('');
@@ -425,28 +638,31 @@ function renderCompare(){
   const hs = byKind('header');
   $('#cmp-headers').innerHTML = hs.length < 2
     ? '<p class="empty">ヘッダーの候補を 2 つ以上入れると、ここに並びます。</p>'
-    : `<div class="compare">${hs.map(h => `<div class="cmp" data-id="${esc(h.id)}"><div class="frame" role="button" tabindex="0" aria-label="${esc(h.name)} に切り替える">${heroHTML(S.x, h.id)}</div><div class="cmp-cap"><span>${esc(h.name)}</span><span class="hint">${esc(h.note || '')}</span></div></div>`).join('')}</div>`;
+    : `<div class="compare">${hs.map(h => `<div class="cmp" data-id="${esc(h.id)}"><div class="frame ip-frame" role="button" tabindex="0" aria-label="${esc(h.name)} に切り替える"><div class="phone">${ipHTML(S.x, `data-img-id="${esc(h.id)}"`, S.ipView, false)}</div></div><div class="cmp-cap"><span>${esc(h.name)}</span><span class="hint">${esc(h.note || '')}</span></div></div>`).join('')}</div>`;
 }
 function renderMocks(){
   $('#mock-pc').innerHTML = mockHTML('pc', S.x, 'data-img="header"');
-  $('#mock-sp').innerHTML = mockHTML('sp', S.x, 'data-img="header"');
 }
 function renderAll(){
   $('#app').classList.toggle('ghost', S.ghost);
-  $$('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.x === S.x)));
+  $('#app').classList.toggle('nobadge', !S.badge);
+  $$('.seg button[data-x]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.x === S.x)));
   $('#ghost').checked = S.ghost;
   $('#cover').checked = S.cover;
   $('#cover-svg').style.display = S.cover ? '' : 'none';
   $('#restore').hidden = !S.hidden.length;
   $('#crop-icon').dataset.img = 'icon';
   $('#crop-header').dataset.img = 'header';
-  renderThumbs(); renderDel(); renderMocks(); renderCompare(); renderMeta(); renderTexts(); paint();
+  renderThumbs(); renderDel(); renderMocks(); renderIp(); renderCompare(); renderMeta(); renderTexts(); paint();
 }
 
 function renderFields(){
   $('#fields').innerHTML = FIELDS.map(f => `<label class="${f.wide ? 'wide' : ''}">${esc(f.label)}${f.multi
     ? `<textarea id="f-${f.k}" data-k="${f.k}" rows="3"></textarea>`
     : `<input id="f-${f.k}" data-k="${f.k}" type="text">`}</label>`).join('');
+  $('#fields').insertAdjacentHTML('beforeend', '<label class="chk wide"><input type="checkbox" id="f-badge"> 名前の横に認証マーク（青いチェック）を出す</label>');
+  $('#f-badge').checked = S.badge;
+  $('#f-badge').addEventListener('change', e => { S.badge = e.target.checked; save(); $('#app').classList.toggle('nobadge', !S.badge); });
   FIELDS.forEach(f => { $('#f-' + f.k).value = S.text[f.k]; });
   $('#fields').addEventListener('input', e => { const k = e.target.dataset.k; if (!k) return; S.text[k] = e.target.value; renderTexts(); save(); });
 }
@@ -501,7 +717,8 @@ document.addEventListener('click', e => {
     if (S.del[k]) { if (S.picked.has(id)) S.picked.delete(id); else S.picked.add(id); th.dataset.picked = String(S.picked.has(id)); renderDel(); return; }
     S.sel[k] = id; save(); renderMeta(); paint(); return;
   }
-  const xb = e.target.closest('.seg button'); if (xb) { S.x = xb.dataset.x; save(); renderAll(); return; }
+  const xb = e.target.closest('.seg button[data-x]'); if (xb) { S.x = xb.dataset.x; save(); renderAll(); return; }
+  const iv = e.target.closest('.seg button[data-ipv]'); if (iv) { S.ipView = iv.dataset.ipv; save(); renderAll(); return; }
   const cmp = e.target.closest('.cmp'); if (cmp) { S.sel.header = cmp.dataset.id; save(); renderMeta(); paint(); return; }
   if (e.target.closest('#restore')) { const back = SAMPLES.filter(s => S.hidden.includes(s.id)).map(withCrop); S.hidden = []; S.items = back.concat(S.items); save(); renderAll(); return; }
   const rs = e.target.closest('[data-reset]'); if (rs) { const it = cur(rs.dataset.reset); if (it) { it.zoom = 1; it.px = 50; it.py = 50; save(); paint(); } return; }
@@ -513,6 +730,8 @@ document.addEventListener('keydown', e => {
 });
 $('#ghost').addEventListener('change', e => { S.ghost = e.target.checked; save(); $('#app').classList.toggle('ghost', S.ghost); });
 $('#cover').addEventListener('change', e => { S.cover = e.target.checked; save(); $('#cover-svg').style.display = S.cover ? '' : 'none'; });
+$('#ipghost').addEventListener('change', e => { S.ipGhost = e.target.checked; save(); $('#app').classList.toggle('ipg', S.ipGhost); });
+$('#ipcover').addEventListener('change', e => { S.ipCover = e.target.checked; save(); $('#ip-svg').style.display = S.ipCover ? '' : 'none'; });
 ['icon', 'header'].forEach(k => {
   $('#zoom-' + k).addEventListener('input', e => { const it = cur(k); if (!it) return; it.zoom = +e.target.value; paint(); });
   $('#zoom-' + k).addEventListener('change', save);
